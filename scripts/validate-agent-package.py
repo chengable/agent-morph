@@ -4,16 +4,31 @@
 from __future__ import annotations
 
 import json
-import re
 import sys
 from pathlib import Path
 
 ALLOWED_ROOT_ENTRIES = {"skills", "agents", "MCP", "hooks", "scripts", "README.md"}
 OPTIONAL_DIRS = {"agents", "MCP", "hooks", "scripts"}
+IGNORED_NAMES = {"__pycache__", ".DS_Store"}
+IGNORED_SUFFIXES = {".pyc", ".pyo"}
 
 
-def has_frontmatter(path: Path) -> bool:
-    text = path.read_text(encoding="utf-8")
+def should_ignore(path: Path) -> bool:
+    return any(part in IGNORED_NAMES for part in path.parts) or path.suffix in IGNORED_SUFFIXES
+
+
+def read_text_safely(path: Path, errors: list[str]) -> str:
+    try:
+        return path.read_text(encoding="utf-8")
+    except OSError as exc:
+        errors.append(f"读取文件失败: {path}: {exc}")
+    except UnicodeDecodeError as exc:
+        errors.append(f"文件不是 UTF-8 文本: {path}: {exc}")
+    return ""
+
+
+def has_frontmatter(path: Path, errors: list[str]) -> bool:
+    text = read_text_safely(path, errors)
     return text.startswith("---\n") and "\n---\n" in text[4:]
 
 
@@ -38,7 +53,7 @@ def list_components(root: Path) -> dict[str, list[str]]:
 
     scripts_dir = root / "scripts"
     if scripts_dir.exists():
-        for script_file in sorted(p for p in scripts_dir.rglob("*") if p.is_file()):
+        for script_file in sorted(p for p in scripts_dir.rglob("*") if p.is_file() and not should_ignore(p)):
             components["scripts"].append(str(script_file.relative_to(root)))
 
     hooks_file = root / "hooks" / "hooks.json"
@@ -46,7 +61,7 @@ def list_components(root: Path) -> dict[str, list[str]]:
         components["hooks"].append(str(hooks_file.relative_to(root)))
     hooks_scripts = root / "hooks" / "scripts"
     if hooks_scripts.exists():
-        for script_file in sorted(p for p in hooks_scripts.rglob("*") if p.is_file()):
+        for script_file in sorted(p for p in hooks_scripts.rglob("*") if p.is_file() and not should_ignore(p)):
             components["hooks"].append(str(script_file.relative_to(root)))
 
     mcp_file = root / "MCP" / ".mcp.json"
@@ -56,16 +71,17 @@ def list_components(root: Path) -> dict[str, list[str]]:
     return components
 
 
-def read_all_markdown(root: Path) -> str:
+def read_all_markdown(root: Path, errors: list[str]) -> str:
     chunks = []
     for path in sorted(root.rglob("*.md")):
-        chunks.append(path.read_text(encoding="utf-8"))
+        if not should_ignore(path):
+            chunks.append(read_text_safely(path, errors))
     return "\n".join(chunks)
 
 
-def check_references(root: Path, components: dict[str, list[str]]) -> list[str]:
+def check_references(root: Path, components: dict[str, list[str]], errors: list[str]) -> list[str]:
     failures: list[str] = []
-    corpus = read_all_markdown(root)
+    corpus = read_all_markdown(root, errors)
 
     for group, paths in components.items():
         for component_path in paths:
@@ -105,26 +121,26 @@ def validate(root: Path) -> dict[str, object]:
         if not skill_files:
             errors.append("skills/ 下至少需要一个 */SKILL.md")
         for skill_file in skill_files:
-            if not has_frontmatter(skill_file):
+            if not has_frontmatter(skill_file, errors):
                 errors.append(f"skill 缺少 frontmatter: {skill_file.relative_to(root)}")
 
     agents_dir = root / "agents"
     if agents_dir.exists():
         for agent_file in sorted(agents_dir.glob("*.md")):
-            if not has_frontmatter(agent_file):
+            if not has_frontmatter(agent_file, errors):
                 errors.append(f"agent 缺少 frontmatter: {agent_file.relative_to(root)}")
 
     hooks_json = root / "hooks" / "hooks.json"
     if hooks_json.exists():
         try:
-            json.loads(hooks_json.read_text(encoding="utf-8"))
+            json.loads(read_text_safely(hooks_json, errors))
         except json.JSONDecodeError as exc:
             errors.append(f"hooks/hooks.json JSON 解析失败: {exc}")
 
     mcp_json = root / "MCP" / ".mcp.json"
     if mcp_json.exists():
         try:
-            json.loads(mcp_json.read_text(encoding="utf-8"))
+            json.loads(read_text_safely(mcp_json, errors))
         except json.JSONDecodeError as exc:
             errors.append(f"MCP/.mcp.json JSON 解析失败: {exc}")
 
@@ -134,7 +150,7 @@ def validate(root: Path) -> dict[str, object]:
             warnings.append(f"目录为空，建议删除或补全链路: {dirname}/")
 
     components = list_components(root)
-    errors.extend(check_references(root, components))
+    errors.extend(check_references(root, components, errors))
 
     return {
         "status": "fail" if errors else "pass",
@@ -147,6 +163,7 @@ def validate(root: Path) -> dict[str, object]:
 def main() -> int:
     if len(sys.argv) != 2:
         print("Usage: validate-agent-package.py <agent-package-root>", file=sys.stderr)
+        print("说明：只校验 agent-morph 生成的目标智能体包目录，不校验 agent-morph 插件源码根目录。", file=sys.stderr)
         return 2
 
     result = validate(Path(sys.argv[1]).resolve())
