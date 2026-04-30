@@ -8,6 +8,14 @@
 
 把用户需求或资源自动转换成链式闭环的 Claude Code 智能体包。
 
+### 为什么做这个？
+
+用 Claude Code 久了会发现一个痛点：**重复造轮子**。每次想做一个新智能体，都要从零开始 — 设计架构、写 skill、配 agent、调 hook、写验证脚本。这些工作大量重复，而且很容易漏掉关键步骤。
+
+agent-morph 就是来解决这个问题的。给它一句话需求、一个开源项目、一份文档，它就能自动走完调研 → 设计 → 构建 → 验证全流程，产出一个结构完整、链路闭环、拿来即用的智能体包。
+
+简单说：**你只管提需求，脏活累活交给它。**
+
 ## 前置依赖
 
 agent-morph 依赖以下插件，请先安装：
@@ -117,6 +125,14 @@ MIT
 <a id="english-doc"></a>
 
 Automatically transform user requirements or resources into chain-closed Claude Code agent packages.
+
+### Why build this?
+
+After using Claude Code extensively, one pain point becomes obvious: **reinventing the wheel**. Every time you want to build a new agent, you start from scratch — designing architecture, writing skills, configuring agents, tuning hooks, building validation scripts. It's repetitive and error-prone, with critical steps easily missed.
+
+agent-morph exists to solve this. Give it a one-liner requirement, an open-source project, or a document, and it automatically runs through research → design → build → validation, producing a structurally complete, chain-closed, ready-to-use agent package.
+
+In short: **you focus on the what, it handles the how.**
 
 ## Prerequisites
 
