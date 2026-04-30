@@ -1,5 +1,11 @@
 # agent-morph
 
+**[中文](#中文文档) | [English](#english-doc)**
+
+---
+
+<a id="中文文档"></a>
+
 把用户需求或资源自动转换成链式闭环的 Claude Code 智能体包。
 
 ## 前置依赖
@@ -101,6 +107,116 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/validate-agent-package.py <生成物目录
 - 不保证所有外部 URL 都可访问
 - 不生成允许目录以外的任意项目结构
 - 除非确认设计明确要求，否则不把生成物默认视为 Claude Code 插件
+
+## License
+
+MIT
+
+---
+
+<a id="english-doc"></a>
+
+Automatically transform user requirements or resources into chain-closed Claude Code agent packages.
+
+## Prerequisites
+
+agent-morph depends on the following plugins. Install them first:
+
+```bash
+/plugin marketplace add obra/superpowers-marketplace
+/plugin install superpowers@superpowers-marketplace
+```
+
+```bash
+/plugin marketplace add claude-plugins-official/plugin-dev
+/plugin install plugin-dev@plugin-dev
+```
+
+## Installation
+
+```bash
+/plugin marketplace add chengable/agent-morph
+/plugin install agent-morph@agent-morph
+```
+
+## Usage
+
+```text
+/agent-morph Build me a financial report analysis agent
+/agent-morph https://github.com/example/project
+/agent-morph ./local-project
+/agent-morph ./requirements.pdf
+```
+
+## Supported Input Types
+
+| Type | Example |
+|------|---------|
+| Natural language | `Build me a news scraping agent` |
+| GitHub repo URL | `https://github.com/user/repo` |
+| Local code path | `./my-project` |
+| Web URL | `https://example.com/docs` |
+| File URL | `https://example.com/spec.pdf` |
+| Local file path | `./requirements.md` |
+
+## Workflow
+
+1. **Input classification** — Auto-detect input type
+2. **Resource reading** — Extract key info and patterns
+3. **Requirement clarification** — Confirm goals, data, interaction
+4. **Research** — Search for reusable MCP, libraries, best practices
+5. **Architecture design** — Plan component list and chains
+6. **Final confirmation** — Generate design doc, await user approval
+7. **Build** — Generate agent package using superpowers + plugin-dev
+8. **Validation** — Structure, quality, chain-closure checks
+9. **Output** — Artifact path + validation report
+
+## Output Structure
+
+agent-morph generates a Claude Code agent package with only:
+
+```text
+skills/       # Required
+agents/       # As needed
+hooks/        # As needed
+scripts/      # As needed
+MCP/          # As needed
+README.md     # Required
+```
+
+The generated README guides you to place each directory where Claude Code can find it (e.g., `.claude/skills/`, `.claude/agents/`).
+
+## Chain Closure
+
+All generated components must be reachable from the main skill. No orphan components. Each component specifies:
+
+- Who calls it
+- What it calls
+- What the input is
+- Where the output goes
+
+## Troubleshooting
+
+### Input type misdetected
+
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/detect-input-type.py '<input>'
+```
+
+### Generated package validation failed
+
+This script only validates generated agent packages, not the plugin source.
+
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/validate-agent-package.py <package-dir>
+```
+
+## Limitations
+
+- Does not create new MCP servers
+- Cannot guarantee all external URLs are accessible
+- Does not generate arbitrary project structures outside allowed directories
+- Does not treat output as a Claude Code plugin unless explicitly requested in design
 
 ## License
 
