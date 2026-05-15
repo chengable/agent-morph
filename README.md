@@ -97,9 +97,7 @@ README.md     # 必须存在
 
 ### 输入类型识别不符合预期
 
-```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/detect-input-type.py '<输入>'
-```
+模型会自动判断输入类型（自然语言/URL/本地路径等）。如识别有误，请在输入中更明确地描述你的需求或提供完整路径/URL。
 
 ### 生成物验证失败
 
@@ -215,9 +213,7 @@ All generated components must be reachable from the main skill. No orphan compon
 
 ### Input type misdetected
 
-```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/detect-input-type.py '<input>'
-```
+The model auto-detects input type (natural language / URL / local path). If misdetected, describe your need more clearly or provide a full path/URL.
 
 ### Generated package validation failed
 
