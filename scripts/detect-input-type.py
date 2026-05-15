@@ -30,15 +30,18 @@ def detect_input_type(raw: str) -> dict[str, object]:
             return {"type": "file_url", "value": value, "confidence": 0.9}
         return {"type": "web_url", "value": value, "confidence": 0.88}
 
-    expanded = os.path.expanduser(value)
-    path = Path(expanded)
-    if path.exists() and path.is_dir():
-        return {"type": "local_path", "value": str(path), "confidence": 0.95}
-    if path.exists() and path.is_file():
-        return {"type": "local_file", "value": str(path), "confidence": 0.95}
+    try:
+        expanded = os.path.expanduser(value)
+        path = Path(expanded)
+        if path.exists() and path.is_dir():
+            return {"type": "local_path", "value": str(path), "confidence": 0.95}
+        if path.exists() and path.is_file():
+            return {"type": "local_file", "value": str(path), "confidence": 0.95}
+    except (OSError, ValueError):
+        pass
 
     if value.startswith(("/", "./", "../", "~/")):
-        return {"type": "local_path", "value": expanded, "confidence": 0.65}
+        return {"type": "local_path", "value": value, "confidence": 0.65}
 
     return {"type": "natural_language", "value": value, "confidence": 0.82}
 

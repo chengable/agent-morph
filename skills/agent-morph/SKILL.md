@@ -41,13 +41,19 @@ argument-hint: <需求描述 | URL | 本地路径 | 文件路径>
 }
 ```
 
-先运行：
+自行判断输入类型，按以下优先级：
 
-```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/detect-input-type.py "$ARGUMENTS"
-```
+| 匹配模式 | 类型 |
+|----------|------|
+| 以 `https://github.com/` 开头，含 owner/repo 结构 | `github_repo` |
+| 以 `http://` 或 `https://` 开头，以 `.pdf`/`.docx`/`.pptx`/`.xlsx`/`.json`/`.yaml`/`.zip`/`.tar.gz`/`.py`/`.js`/`.ts` 等文件后缀结尾 | `file_url` |
+| 以 `http://` 或 `https://` 开头，其余情况 | `web_url` |
+| 以 `/`/`./`/`../`/`~/` 开头，且当前环境中该路径存在且为目录 | `local_path` |
+| 以 `/`/`./`/`../`/`~/` 开头，且当前环境中该路径存在且为文件 | `local_file` |
+| 以 `/`/`./`/`../`/`~/` 开头，但路径不存在 | `local_path`（标记 confidence: low） |
+| 其余一切情况（包括中文、英文需求描述、长文本等） | `natural_language` |
 
-`${CLAUDE_PLUGIN_ROOT}` 由 Claude Code 自动设置为插件安装目录。如果该变量不可用，使用插件根目录下的 `scripts/detect-input-type.py` 绝对路径。
+判断完成后，输出分类结果（类型、值、置信度），直接进入下一步资源读取。
 
 ### 2. 资源读取
 
