@@ -12,7 +12,7 @@
       "name": "agent-morph",
       "version": "0.1.0",
       "description": "把用户需求或资源自动转换成链式闭环的 Claude Code 智能体包",
-      "source": ".",
+      "source": "./",
       "category": "development"
     }
   ]
