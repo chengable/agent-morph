@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "agent-morph",
+  "version": "1.0.0",
+  "description": "Agent Morph — 把用户需求自动转换成链式闭环的 Claude Code 智能体包",
+  "owner": {
+    "name": "chengable",
+    "email": "chengable@github.com"
+  },
+  "plugins": [
+    {
+      "name": "agent-morph",
+      "version": "0.1.0",
+      "description": "把用户需求或资源自动转换成链式闭环的 Claude Code 智能体包",
+      "source": ".",
+      "category": "development"
+    }
+  ]
+}
